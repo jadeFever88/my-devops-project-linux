@@ -1,6 +1,7 @@
 services:
   web-site:
     image: nginx:alpine
+    restart: always
     ports:
       - "9091:80"
     volumes:

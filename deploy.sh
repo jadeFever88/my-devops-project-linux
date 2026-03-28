@@ -8,6 +8,7 @@ docker rm -f my-web-app 2>/dev/null
 # Запускаємо новий з нашою папкою
 docker run -d \
   --name my-web-app \
+  --restart always \
   -p 8081:80 \
   -v $(pwd):/usr/share/nginx/html \
   nginx
