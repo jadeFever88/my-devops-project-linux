@@ -1,0 +1,10 @@
+services:
+  web-site:
+    image: nginx:alpine
+    ports:
+      - "9091:80"
+    volumes:
+      - .:/usr/share/nginx/html
+
+  stats:
+    image: htop-image # Це просто для прикладу, пізніше поставимо справжню БД
