@@ -3,33 +3,41 @@ import time
 import os
 import logging
 
-# Налаштування логування: записуємо у файл uptime.log
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("uptime.log"), # Запис у файл
-        logging.StreamHandler()            # Дублювання в термінал
-    ]
+    handlers=[logging.FileHandler("uptime.log"), logging.StreamHandler()]
 )
 
-URL = "http://localhost:8081"
-CONTAINER_NAME = "my-web-app"
+# Налаштування
+URL_SITE = "http://localhost:8081"
+CONTAINER_WEB = "my-web-app"
+CONTAINER_DB = "my-db"
 
-def check_and_fix():
+def check_infrastructure():
+    # 1. Перевірка сайту (HTTP)
     try:
-        response = requests.get(URL, timeout=3)
-        if response.status_code == 200:
-            logging.info("Сайт працює стабільно.")
+        web_res = requests.get(URL_SITE, timeout=3)
+        if web_res.status_code == 200:
+            logging.info("🌐 Сайт: OK")
         else:
-            logging.warning(f"Код відповіді {response.status_code}. Спроба реанімації...")
-            os.system(f"docker start {CONTAINER_NAME}")
-    except requests.exceptions.ConnectionError:
-        logging.error("Сайт НЕДОСТУПНИЙ! Запускаю контейнер...")
-        os.system(f"docker start {CONTAINER_NAME}")
+            logging.warning(f"🌐 Сайт: Помилка {web_res.status_code}. Перезапуск...")
+            os.system(f"docker start {CONTAINER_WEB}")
+    except:
+        logging.error("🌐 Сайт: НЕДОСТУПНИЙ. Реанімація...")
+        os.system(f"docker start {CONTAINER_WEB}")
 
-logging.info("Система моніторингу та логування запущена.")
+    # 2. Перевірка бази (через Docker inspect)
+    # Ми перевіряємо, чи контейнер з базою просто "запущений"
+    db_status = os.popen(f"docker inspect -f '{{{{.State.Running}}}}' {CONTAINER_DB}").read().strip()
+    if db_status == "true":
+        logging.info("🗄️ База: OK")
+    else:
+        logging.error("🗄️ База: ВПАЛА. Запускаю...")
+        os.system(f"docker start {CONTAINER_DB}")
 
+logging.info("🚀 Розширений моніторинг запущено")
 while True:
-    check_and_fix()
-    time.sleep(10) # Перевіряємо кожні 10 секунд
+    check_infrastructure()
+    print("-" * 30) # Розділювач для краси в терміналі
+    time.sleep(10)
