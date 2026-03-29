@@ -11,6 +11,12 @@ services:
     networks:
       - devops-net
     restart: always
+    # --- ОБМЕЖЕННЯ ---
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'      # Не більше 25% одного ядра процесора
+          memory: 64M       # Не більше 64 Мегабайт оперативки
 
   database:
     image: redis:alpine
@@ -18,6 +24,12 @@ services:
     networks:
       - devops-net
     restart: always
+    # --- ОБМЕЖЕННЯ ---
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
 
 networks:
   devops-net:

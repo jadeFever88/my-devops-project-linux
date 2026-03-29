@@ -2,10 +2,20 @@ import requests
 import time
 import os
 import logging
+import logging
+from logging.handlers import RotatingFileHandler
 
 # --- НАЛАШТУВАННЯ ТЕЛЕГРАМ ---
 TOKEN = "8223278180:AAGWUQ2mDiIbcRC44WRtfT27zbJSYHIMkfI"
 CHAT_ID = "392283203"
+# Замість звичайного FileHandler використовуємо Rotating
+handler = RotatingFileHandler("uptime.log", maxBytes=1024*1024, backupCount=3) # 1MB на файл
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[handler, logging.StreamHandler()]
+)
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
