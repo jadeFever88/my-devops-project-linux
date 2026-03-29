@@ -4,10 +4,15 @@ import os
 import logging
 import logging
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
 
-# --- НАЛАШТУВАННЯ ТЕЛЕГРАМ ---
-TOKEN = "8223278180:AAGWUQ2mDiIbcRC44WRtfT27zbJSYHIMkfI"
-CHAT_ID = "392283203"
+# Завантажуємо дані з файлу .env
+load_dotenv()
+
+# Тепер Python бере ці значення ТІЛЬКИ з файлу .env
+TOKEN = os.getenv("TG_TOKEN")
+CHAT_ID = os.getenv("TG_CHAT_ID")
+
 # Замість звичайного FileHandler використовуємо Rotating
 handler = RotatingFileHandler("uptime.log", maxBytes=1024*1024, backupCount=3) # 1MB на файл
 
