@@ -18,6 +18,15 @@ services:
           cpus: '0.25'      # Не більше 25% одного ядра процесора
           memory: 64M       # Не більше 64 Мегабайт оперативки
 
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    networks:
+      - devops-net
+    depends_on:
+      - database
+
   database:
     image: redis:alpine
     container_name: my-db
