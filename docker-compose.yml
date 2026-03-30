@@ -17,6 +17,17 @@ services:
         limits:
           cpus: '0.25'      # Не більше 25% одного ядра процесора
           memory: 64M       # Не більше 64 Мегабайт оперативки
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"   # файл не більше 10 Мегабайт
+        max-file: "3"     # зберігати тільки 3 останніх файли
+    healthcheck:
+      # wget -q (тихо) -O /dev/null (не зберігати файл) --spider (не завантажувати, тільки перевірити)
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   backend:
     build: ./backend
@@ -26,6 +37,19 @@ services:
       - devops-net
     depends_on:
       - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"   # файл не більше 10 Мегабайт
+        max-file: "3"     # зберігати тільки 3 останніх файли
+    healthcheck:
+      # Замість curl використовуємо вбудований python для запиту на самого себе
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 
   database:
     image: redis:alpine
@@ -39,6 +63,12 @@ services:
         limits:
           cpus: '0.25'
           memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"   # файл не більше 10 Мегабайт
+        max-file: "3"     # зберігати тільки 3 останніх файли
+
 
 networks:
   devops-net:
