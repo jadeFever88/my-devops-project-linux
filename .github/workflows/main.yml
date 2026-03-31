@@ -1,33 +1,50 @@
-name: DevOps CI  # Назва нашого процесу
+name: DevOps Full Pipeline
 
-on: [push]      # Запускати при кожному push
+on: [push, pull_request]
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Це "заткне" попередження і оновить Node.js
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  check-code:
-    runs-on: ubuntu-latest  # GitHub виділяє нам безкоштовну віртуалку
-    
+  # ЕТАП 1: Перевірка стилю коду (Linter)
+  lint-and-config:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4  # Копіюємо твій код на віртуалку GitHub
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install Linting Tools
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install flake8
 
       - name: Lint with flake8
         run: |
-          pip install flake8
-          # Перевірка на критичні помилки Python
+          # Перевірка на критичні помилки
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Check Docker Compose file
-        run: docker compose config  # Перевірка правильності структури yaml
+      - name: Validate Docker Compose
+        run: docker compose config
+
+  # ЕТАП 2: Реальний запуск у Docker та Тести
+  run-tests:
+    needs: lint-and-config  # Запуститься тільки якщо лінтер пройшов успішно
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and Start Stack
+        run: docker compose up -d
+
+      - name: Run Pytest in Container
+        run: |
+          sleep 5
+          # Запускаємо тест саме у вашому сервісі backend
+          docker compose run --rm backend pytest
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
