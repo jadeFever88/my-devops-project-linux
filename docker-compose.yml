@@ -92,6 +92,8 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus  # Зберігаємо історію графіків тут
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - devops-net
 
@@ -100,6 +102,33 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana  # <--- Ось тут магія збереження
+    networks:
+      - devops-net
+
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    user: "0"
+    volumes:
+      - loki-data:/loki              # Зберігаємо ваші логи тут
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - devops-net
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    user: root
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
     networks:
       - devops-net
 
@@ -107,3 +136,8 @@ services:
 networks:
   devops-net:
     driver: bridge
+
+volumes:
+  prometheus-data:
+  loki-data:
+  grafana-data:
