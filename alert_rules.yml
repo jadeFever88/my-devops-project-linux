@@ -1,0 +1,11 @@
+groups:
+- name: infrastructure_alerts
+  rules:
+  - alert: ContainerDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Контейнер {{ $labels.instance }} впав!"
+      description: "Сервіс не відповідає більше 1 хвилини."

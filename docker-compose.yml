@@ -52,7 +52,6 @@ services:
       retries: 3
       start_period: 10s
 
-
   database:
     image: redis:alpine
     container_name: my-db
@@ -92,8 +91,12 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml
       - prometheus-data:/prometheus  # Зберігаємо історію графіків тут
       - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     networks:
       - devops-net
 
@@ -129,6 +132,24 @@ services:
       - ./promtail-config.yml:/etc/promtail/config.yml
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/config.yml
+    networks:
+      - devops-net
+
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command: >
+      sh -c "sed -i 's/YOUR_BOT_TOKEN_HERE/$$TELEGRAM_BOT_TOKEN/g' /etc/alertmanager/alertmanager.yml &&
+             sed -i 's/YOUR_CHAT_ID_HERE/$$TELEGRAM_CHAT_ID/g' /etc/alertmanager/alertmanager.yml &&
+             /bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml"
+    ports:
+      - "9093:9093"
     networks:
       - devops-net
 
