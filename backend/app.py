@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Response, Flask
 from redis import Redis
 import os
 
@@ -11,12 +11,16 @@ redis = Redis(host='database', port=6379, socket_connect_timeout=2)
 @app.route('/')
 def hello():
     try:
-        # Спроба збільшити лічильник у Redis
         count = redis.incr('hits')
-        return f'<h1>Успіх!</h1><p>Цю сторінку переглянули <b>{count}</b> разів.</p>'
+        # Формуємо рядок так, щоб він виглядав як метрика для Prometheus
+        # Формат: назва_метрики значення
+        output = f"hits_total {count}\napp_up 1"
+        return Response(output, mimetype='text/plain')
     except Exception as e:
-        # Якщо база не доступна, ми побачимо текст помилки
-        return f'<h1>Помилка підключення!</h1><p>Додаток не бачить Redis. Помилка: <code>{e}</code></p>'
+        # Якщо Redis впав, ми повертаємо статус 0
+        output = f"hits_total 0\napp_up 0\nerror_info {e}"
+        return Response(output, mimetype='text/plain', status=500)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

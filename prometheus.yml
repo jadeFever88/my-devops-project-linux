@@ -1,8 +1,7 @@
 global:
-  scrape_interval: 15s # збирати дані кожні 15 секунд
-  evaluation_interval: 15s # Як часто перевіряти правила алертингу
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
-# Посилання на файл із правилами (наприклад, "контейнер впав")
 rule_files:
   - "alert_rules.yml"
 
@@ -19,8 +18,9 @@ scrape_configs:
 
   - job_name: 'docker'
     static_configs:
-      - targets: ['cadvisor:8080'] # кажемо Прометею забирати дані у cAdvisor
+      - targets: ['cadvisor:8080']
 
   - job_name: 'my-docker-app-backend-1'
+    metrics_path: '/'
     static_configs:
-       - targets: ['my-docker-app-backend-1:5000'] # Замініть на назву вашого сервісу та його порт
+       - targets: ['my-docker-app-backend-1:5000']
