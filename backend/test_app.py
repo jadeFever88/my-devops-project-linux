@@ -13,7 +13,8 @@ def test_homepage_status(client):
     assert response.status_code == 200
 
 def test_homepage_content(client):
-    """Перевірка, що на сторінці є слово 'Успіх' або 'Помилка'"""
+    """Перевірка, що додаток повертає метрики у форматі Prometheus"""
     response = client.get('/')
-    # Ми перевіряємо байти (b''), бо Flask повертає дані в такому форматі
-    assert b'\xd0\xa3\xd1\x81\xd0\xbf\xd1\x96\xd1\x85' in response.data or b'\xd0\x9f\xd0\xbe\xd0\xbc\xd0\xb8\xd0\xbb\xd0\xba\xd0\xb0' in response.data
+    assert response.status_code == 200
+    assert b'hits_total' in response.data
+    assert b'app_up' in response.data
